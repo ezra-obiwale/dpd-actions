@@ -80,15 +80,7 @@ ActionResource.prototype.handle = function(context) {
     if (action) {
       action.data = _.merge({}, context.query, context.body);
       try {
-        action.executable.run(context, this.createDomain(action),
-          function(error) {
-            if (error) {
-              logger.error(_tag_, 'Failed executing action %j with error: %j', action.name, error);
-            } else {
-              logger.info(_tag_, 'Successfully executed action %j', action.name);
-              context.done(error, action.data);
-            }
-          });
+        action.executable.run(context, this.createDomain(action));
       } catch (error) {
         logger.error(_tag_, 'Failed executing action: %j with error: %j', action.name, error.message);
         context.done(error);
@@ -145,9 +137,7 @@ ActionResource.prototype.createDomain = function(action) {
     'this': action.data,
     data: action.data,
 
-    // Additional resources, that will come in handy...
-    // Provide dependency management access
-    require: require,
+   
 
     // Allow internal access to other resources
     store: {
