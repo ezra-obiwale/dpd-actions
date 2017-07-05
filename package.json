@@ -1,14 +1,27 @@
 {
   "name": "dpd-method-actions",
   "description": "A deployd module that allows to define custom route actions on request methods",
+  "main": "index.js",
   "repository": {
     "type": "git",
-    "url": "http://github.com/ezra-obiwale/dpd-actions.git"
+    "url": "http://github.com/ezra-obiwale/dpd-method-actions.git"
   },
+  "author": [
+		{
+			"name": "Ezra Obiwale",
+			"email": "contact@ezraobiwale.com"
+		}
+	],
   "version": "1.0.0",
   "dependencies": {
     "lodash": "^2.4.1",
     "npmlog": "^0.1.1"
   },
-  "scripts": {}
+  "keywords": [
+    "dpdmodule",
+    "deployd",
+    "dpd",
+    "dpd-router-event"
+  ],
+  "license": "MIT"
 }
