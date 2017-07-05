@@ -24,7 +24,7 @@ Actions can be accessed using the dpd client or http request.
 
 For the dpd client use:
 
-`dpd.actions.myaction('actionname', callback);`
+`dpd.actions.myaction('actionname', {...}, callback);`
 
 For http access:
 

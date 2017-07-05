@@ -1,6 +1,6 @@
 {
-  "name": "dpd-actions",
-  "description": "A deployd module that allows to define custom route actions",
+  "name": "dpd-method-actions",
+  "description": "A deployd module that allows to define custom route actions on request methods",
   "repository": {
     "type": "git",
     "url": "http://github.com/ezra-obiwale/dpd-actions.git"
