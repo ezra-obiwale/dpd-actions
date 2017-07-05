@@ -75,7 +75,6 @@
       };
 
       data.actions.push(action);
-
       storeConfiguration(data);
       storeCode(bindings.creatable.name(), bindings.creatable.method());
 
@@ -86,7 +85,6 @@
       bindings.editable.name(action.name);
       bindings.editable.method(action.method);
       bindings.editable.resource(action.resource);
-
 
       $('.edit-mode').removeClass('edit-mode');
       $('#action-' + action.name).addClass('edit-mode');
@@ -107,6 +105,13 @@
       });
 
       storeConfiguration(configuration);
+
+      // remove old code of name or method changed
+      if (action.name !== bindings.editable.method()
+        || action.method !== bindings.editable.method()) {
+        removeCode(action.name, action.method, true);
+      }
+
       storeCode(bindings.editable.name(), bindings.editable.method());
 
       bindings.actions(configuration.actions);
@@ -138,6 +143,7 @@
       bindings.actions(data.actions);
 
       storeConfiguration(data);
+      removeCode(action.name, action.method);
     });
 
     bindings.isEmpty = ko.observable(bindings.actions().length === 0);
@@ -158,6 +164,7 @@
           .toggle(false);
       });
 
+    bindings.requestMethods = ['GET', 'POST', 'PUT', 'DELETE'];
     bindings.availableResources = [];
     fetchAvailableResources(bindings);
   }
@@ -176,8 +183,7 @@
 
       var code = action || '';
 
-      editor.getSession()
-        .setValue(code);
+      editor.getSession().setValue(code);
       editor.getSession()
         .on('change', function () {
           // trackUpdate(editor);
@@ -214,12 +220,7 @@
           bindings.availableResources.splice(index, 0, resource.id);
         }
       });
-      // bindings.availableResources = _.compact(
-      //   _.map(resources, function (resource) {
-      //     return resource.type !== 'ActionResource' ? resource.id : false;
-      //   })
-      // );
-
+      bindings.availableResources.unshift('');
       ko.applyBindings(bindings);
     });
   }
@@ -227,7 +228,7 @@
   function storeCode(name, method) {
     var value = editor.getSession().getValue() || '';
 
-    var fileName = name.replace(' ', '-').toLowerCase() + '/' + method.toLowerCase() + '.js';
+    var fileName = name.replace(' ', '-').toLowerCase() + '-' + method + '.js';
 
     dpd('__resources')
       .put(Context.resourceId + '/' + fileName, {
@@ -246,11 +247,31 @@
       });
   }
 
+  function removeCode(name, method, noAlert) {
+    var value = editor.getSession().getValue() || '';
+
+    var fileName = name.replace(' ', '-').toLowerCase() + '-' + method + '.js';
+
+    dpd('__resources')
+      .del(Context.resourceId + '/' + fileName, {
+        value: value
+      }, function (resource, error) {
+        if (noAlert) return;
+
+        if (error) {
+          return ui.error('Error deleting event', error.message)
+            .effect('slide');
+        }
+        if (!$('#notifications li').length) {
+          ui.notify('Deleted').hide(1000).effect('slide');
+        }
+      });
+  }
+
   function fetchCode(callback) {
     if (bindings && bindings.editable.name()) {
-      var fileName = bindings.editable.name()
-        .replace(' ', '-').toLowerCase() + '/'
-        + bindings.editable.method() + '.js';
+      var fileName = bindings.editable.name().replace(' ', '-').toLowerCase()
+        + '-' + bindings.editable.method() + '.js';
 
       dpd('__resources')
         .get(Context.resourceId + '/' + fileName,

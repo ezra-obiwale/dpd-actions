@@ -33,11 +33,8 @@
                 </div>
 
                 <div class="component-item-block">
-                  <select id="method" data-bind="value: creatable.method">
-                    <option>GET</option>
-                    <option>POST</option>
-                    <option>PUT</option>
-                    <option>DELETE</option>
+                  <select id="method" data-bind="value: creatable.method,
+                                    options: requestMethods">
                   </select>
                 </div>
 
@@ -65,9 +62,9 @@
             <!-- ko foreach: actions -->
             <li class="component-item action" data-bind="attr: { id: 'action-' + name }">
 
-              <div class="component-item-header" data-bind="click: $root.onEdit">
+              <div class="component-item-header">
 
-                <div class="no-show-on-edit">
+                <div class="no-show-on-edit" data-bind="click: $root.onEdit">
                   <span>
                     <i class="icon-white icon-off"
                        data-original-title="string">
@@ -99,13 +96,10 @@
                   <div class="component-item-block">
                     <label style="display: inline">Request Method: </label>
                   </div>
-
+                  
                   <div class="component-item-block">
-                    <select id="method" data-bind="value: creatable.method">
-                      <option>GET</option>
-                      <option>POST</option>
-                      <option>PUT</option>
-                      <option>DELETE</option>
+                    <select id="method" data-bind="value: $root.editable.method,
+                                    options: $root.requestMethods">
                     </select>
                   </div>
 

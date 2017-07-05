@@ -3,9 +3,9 @@
   "description": "A deployd module that allows to define custom route actions",
   "repository": {
     "type": "git",
-    "url": "http://github.com/chunksnbits/dpd-actions.git"
+    "url": "http://github.com/ezra-obiwale/dpd-actions.git"
   },
-  "version": "0.0.3",
+  "version": "1.0.0",
   "dependencies": {
     "lodash": "^2.4.1",
     "npmlog": "^0.1.1"

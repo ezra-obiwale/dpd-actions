@@ -25,17 +25,16 @@ function ActionResource(name, options) {
   // Store actions for later reference
   _.each(this.config.actions, function (action) {
 
-    action.name = action.name.replace(' ', '-')
-      .toLowerCase();
+    action.name = action.name.replace(' ', '-').toLowerCase();
 
     action.store = options && action.resource ? options.db.createStore(action.resource) : {};
 
-    action.executable = Script.load(this.options.configPath + '/' + action.name + '/' + action.method + '.js',
+    action.executable = Script.load(this.options.configPath + '/' + action.name + '-' + action.method + '.js',
       function (error, script) {
         if (!error) {
           action.executable = script;
         } else {
-          throw new Error('Failed to init executable for action ' + action.name + '/' + action.method + '. Failed with error: ' + error.message);
+          throw new Error('Failed to init executable for action ' + action.name + '-' + action.method + '. Failed with error: ' + error.message);
         }
       });
 
@@ -74,8 +73,7 @@ ActionResource.prototype.handle = function (ctx, next) {
   var parts = ctx.url.substr(1).split('/');
   var requestPath = parts.shift();
   var action = this.actions[requestPath];
-
-  if (action && ctx.req.method.toLowerCase() !== action.method) {
+  if (action && ctx.req.method === action.method) {
     try {
       var data = {};
       var domain = {
@@ -83,7 +81,6 @@ ActionResource.prototype.handle = function (ctx, next) {
         parts: parts,
         query: ctx.query,
         body: ctx.body,
-        'this': data,
         getHeader: function (name) {
           if (ctx.req.headers) {
             return ctx.req.headers[name];
@@ -93,14 +90,19 @@ ActionResource.prototype.handle = function (ctx, next) {
           if (ctx.res.setHeader) {
             ctx.res.setHeader(name, value);
           }
+        },
+        setResult: function (val, err) {
+          data = val;
+          ctx.done(err, data);
         }
       };
       action.executable.run(ctx, domain, function (err) {
-        ctx.done(err, data);
+        if (err)
+          ctx.done(err);
       });
     } catch (err) {
       logger.error(_tag_, 'Failed executing %j action: %j with error: %j',
-        action.method.toUpperCase(), action.name, err.message);
+        action.method, action.name, err.message);
       ctx.done(err);
     }
   }

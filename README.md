@@ -1,9 +1,8 @@
-dpd-actions
-===========
-
 # Deployd custom route action module
 
-This custom resource type allows you to define custom actions, to be performed outside the default collection resource, i.e., dpd-actions do not necessarily require a collection to be executed.
+This custom resource type allows you to define custom actions, to be performed
+outside the default collection resource, i.e., dpd-actions do not necessarily
+require a collection to be executed.
 
 ## Installation
 
@@ -11,12 +10,15 @@ Within your deployd app, you can add dpd-actions using npm:
 
 `npm install dpd-actions`
 
-See [Installing Modules](http://docs.deployd.com/docs/using-modules/installing-modules.md) for details.
+See [Installing Modules](http://docs.deployd.com/docs/using-modules/installing-modules.md)
+for details.
 
 ## Configuration
 
-Go to the deployd dashboard and add a new dpd-action. Specify a name for your action ('myactions').
-In the actions panel add actions using the provided forms and add the code necessary to execute the action.
+Go to the deployd dashboard and add a new dpd-action. Specify a name for your
+action ('myaction').
+In the actions panel, add actions using the provided forms and add the code
+necessary to execute the action.
 
 Actions can be accessed using the dpd client or http request.
 
@@ -26,34 +28,45 @@ For the dpd client use:
 
 For http access:
 
-`http.get/post/put/delete('http://*my-host*:*my-port*/actions/myaction/actionname');
+`http.get/post/put/delete('http://*my-host*:*my-port*/myaction/actionname');
 
 ### Settings:
 
+`method`
+
+Indicate the request method for which the action should be available.
+
 `resource`
 
-Allows you to specify any resource in your current setup. This resource will be directly available through the store object within your actions.
+Allows you to specify any resource in your current setup. This resource will be
+directly available through the store object within your actions.
 
-### Helpers
+### Event API
 
-A couple of helper methods/objects will be available within a custom action:
+- #### `url`
 
-* `require`
+    The url of the request. e.g. `/myaction/actionname/part1/part2?query1=one&query2=two`
 
-Provides access to the node [module loader](http://nodejs.org/api/modules.html)
+- #### `parts`
 
-* `dpd`
+    The url parts array after the `<actionname>` e.g. `[part1, part2]`
 
-Gives access to the internal dpd client. Allows to query other resources / collections / actions within your deployd app.
+- #### `query`
 
-* `store`
+    The query string object e.g. `{ query1: 'one', query2: 'two' }`
 
-Direct access to this action's `resource`'s Mongo store. Provides two accessor methods:
+- #### `body`
 
-`store.fetch`: Query the mongo store
+    The request body available on `POST` and `PUT`.
 
-`store.persist`: Persist data into the mongo store
+- #### `getHeader( string:` name `)`
 
-* `this` / `data`
+    Shortcut method the get a header.
 
-Provides access to the requested resource and is used to provide the values returned by the request.
+- #### `setHeader( string:` name `, string:` value `)`
+
+    Shortcut method to set a header.
+
+- #### `setResult( any:` data `, any:` error `)`
+
+    Sets the result of the action. This `MUST` be called to terminate the request.
