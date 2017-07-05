@@ -7,11 +7,10 @@
       <div class="panel-cell nav">
         <div id="property-list" class="placeholder">
           <ul class="component-list">
-            <li id="action-new"
-                class="component-item edit-mode placeholder component-item-header">
+            <li id="action-new" class="component-item edit-mode placeholder component-item-header">
               <h3 data-bind="click: $root.onNew">
                 Create new
-                <a class="btn-action-new action-new float-right" >
+                <a class="btn-action-new action-new float-right">
                   <i class="icon-white icon-plus"></i>
                 </a>
               </h3>
@@ -30,12 +29,24 @@
                 </div>
 
                 <div class="component-item-block">
+                  <label style="display: inline">Request Method: </label>
+                </div>
+
+                <div class="component-item-block">
+                  <select id="method" data-bind="value: creatable.method">
+                    <option>GET</option>
+                    <option>POST</option>
+                    <option>PUT</option>
+                    <option>DELETE</option>
+                  </select>
+                </div>
+
+                <div class="component-item-block">
                   <label style="display: inline">Resource: </label>
                 </div>
 
                 <div class="component-item-block">
-                  <select id="resource"
-                          data-bind="value: creatable.resource,
+                  <select id="resource" data-bind="value: creatable.resource,
                                      options: availableResources">
                   </select>
                 </div>
@@ -45,26 +56,23 @@
                 </div>
 
                 <div class="component-item-block">
-                  <button class="btn btn-success"
-                          data-bind="click: $root.onAdd">
+                  <button class="btn btn-success" data-bind="click: $root.onAdd">
                     <i class="icon-white icon-plus"></i>&nbsp;Create
                   </button>
                 </div>
               </div>
             </li>
             <!-- ko foreach: actions -->
-            <li class="component-item action"
-                data-bind="attr: { id: 'action-' + name }">
+            <li class="component-item action" data-bind="attr: { id: 'action-' + name }">
 
-              <div class="component-item-header"
-                   data-bind="click: $root.onEdit">
+              <div class="component-item-header" data-bind="click: $root.onEdit">
 
                 <div class="no-show-on-edit">
                   <span>
                     <i class="icon-white icon-off"
                        data-original-title="string">
                     </i>
-                    <strong data-bind="text: name"></strong>
+                    <strong data-bind="text: name"></strong>:<strong data-bind="text: method"></strong>
                   </span>
 
                   <span class="pull-right">
@@ -73,8 +81,7 @@
                     </a>
                   </span>
 
-                  <span class="pull-right label"
-                        data-bind="visible: resource,
+                  <span class="pull-right label" data-bind="visible: resource,
                                    text: resource">
                   </span>
 
@@ -90,12 +97,24 @@
                   </div>
 
                   <div class="component-item-block">
+                    <label style="display: inline">Request Method: </label>
+                  </div>
+
+                  <div class="component-item-block">
+                    <select id="method" data-bind="value: creatable.method">
+                      <option>GET</option>
+                      <option>POST</option>
+                      <option>PUT</option>
+                      <option>DELETE</option>
+                    </select>
+                  </div>
+
+                  <div class="component-item-block">
                     <label style="display: inline">Resource: </label>
                   </div>
 
                   <div class="component-item-block">
-                    <select id="resource"
-                            data-bind="value: $root.editable.resource,
+                    <select id="resource" data-bind="value: $root.editable.resource,
                                        options: $root.availableResources">
                     </select>
                   </div>

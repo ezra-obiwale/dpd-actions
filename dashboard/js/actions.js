@@ -1,7 +1,7 @@
 /* jshint node: true */
 /* global _, $, ko, ui, dpd, ace, Context */
 
-(function() {
+(function () {
   'use strict';
 
   if (window.actionsInitialized) {
@@ -16,9 +16,9 @@
   function render(configuration) {
 
     var data = _.extend({
-        actions: [],
-        type: 'ActionResource'
-      },
+      actions: [],
+      type: 'ActionResource'
+    },
       configuration || {});
 
     bindings = {};
@@ -26,37 +26,38 @@
     bindings.editable = {
       id: ko.observable(''),
       name: ko.observable(''),
+      method: ko.observable(''),
       resource: ko.observable('')
     };
 
     bindings.creatable = {
       name: ko.observable(''),
+      method: ko.observable(''),
       resource: ko.observable('')
     };
 
-    var reset = _.bind(function() {
+    var reset = _.bind(function () {
       bindings.creatable.name('');
+      bindings.creatable.method('');
       bindings.creatable.resource('');
     });
 
     bindings.actions = ko.observableArray(data.actions);
 
-    bindings.onEdit = _.bind(function(action) {
+    bindings.onEdit = _.bind(function (action) {
 
-      $('.edit-mode')
-        .removeClass('edit-mode');
-      $('#action-' + action.name)
-        .addClass('edit-mode');
+      $('.edit-mode').removeClass('edit-mode');
+      $('#action-' + action.name).addClass('edit-mode');
 
       if (!action.name) {
         return;
       }
 
-      $('.action-edit')
-        .toggleClass('hide');
+      $('.action-edit').toggleClass('hide');
 
       bindings.editable.id(action.name);
       bindings.editable.name(action.name);
+      bindings.editable.method(action.method);
       bindings.editable.resource(action.resource);
 
       bindings.isNew(false);
@@ -66,70 +67,69 @@
       fetchCode();
     });
 
-    bindings.onAdd = _.bind(function() {
+    bindings.onAdd = _.bind(function () {
       var action = {
         name: bindings.creatable.name(),
+        method: bindings.creatable.method(),
         resource: bindings.creatable.resource()
       };
 
       data.actions.push(action);
 
       storeConfiguration(data);
-      storeCode(bindings.creatable.name());
+      storeCode(bindings.creatable.name(), bindings.creatable.method());
 
       bindings.actions(data.actions);
 
       reset();
 
       bindings.editable.name(action.name);
+      bindings.editable.method(action.method);
       bindings.editable.resource(action.resource);
 
 
-      $('.edit-mode')
-        .removeClass('edit-mode');
-      $('#action-' + action.name)
-        .addClass('edit-mode');
+      $('.edit-mode').removeClass('edit-mode');
+      $('#action-' + action.name).addClass('edit-mode');
 
     }, bindings);
 
-    bindings.onUpdate = _.bind(function(action, event) {
+    bindings.onUpdate = _.bind(function (action, event) {
       var name = bindings.editable.id();
 
-      _.forEach(configuration.actions, function(action, index) {
+      _.forEach(configuration.actions, function (action, index) {
         if (name === action.name) {
           configuration.actions[index] = {
             name: bindings.editable.name(),
+            method: bindings.editable.method(),
             resource: bindings.editable.resource()
           };
         }
       });
 
       storeConfiguration(configuration);
-      storeCode(bindings.editable.name());
+      storeCode(bindings.editable.name(), bindings.editable.method());
 
       bindings.actions(configuration.actions);
 
-      $('#action-' + action.name)
-        .addClass('edit-mode');
+      $('#action-' + action.name).addClass('edit-mode');
 
     }, bindings);
 
-    bindings.onNew = _.bind(function() {
+    bindings.onNew = _.bind(function () {
       bindings.editable.name('');
+      bindings.editable.method('');
       bindings.editable.resource('');
 
-      $('.edit-mode')
-        .removeClass('edit-mode');
-      $('#action-new')
-        .addClass('edit-mode');
+      $('.edit-mode').removeClass('edit-mode');
+      $('#action-new').addClass('edit-mode');
     });
 
-    bindings.onDelete = _.bind(function(action, event) {
+    bindings.onDelete = _.bind(function (action, event) {
 
       event.preventDefault();
       event.stopPropagation();
 
-      _.forEach(bindings.actions(), function(storedAction, index) {
+      _.forEach(bindings.actions(), function (storedAction, index) {
         if (storedAction.name === action.name) {
           data.actions.splice(index, 1);
         }
@@ -147,12 +147,12 @@
     bindings.isInitialized = ko.observable(true);
 
     $(document)
-      .on('mouseover', '.component-item', function() {
+      .on('mouseover', '.component-item', function () {
         $(this)
           .find('.hide')
           .toggle(true);
       })
-      .on('mouseout', '.component-item', function() {
+      .on('mouseout', '.component-item', function () {
         $(this)
           .find('.hide')
           .toggle(false);
@@ -179,7 +179,7 @@
       editor.getSession()
         .setValue(code);
       editor.getSession()
-        .on('change', function() {
+        .on('change', function () {
           // trackUpdate(editor);
         });
       editor.commands.addCommand({
@@ -188,8 +188,8 @@
           win: 'Ctrl-S',
           mac: 'Command-S'
         },
-        exec: function() {
-          storeCode(bindings.editable.name());
+        exec: function () {
+          storeCode(bindings.editable.name(), bindings.editable.method());
         }
       });
     }
@@ -197,7 +197,7 @@
 
   function storeConfiguration(configuration) {
     dpd('__resources')
-      .put(Context.resourceId, configuration, function(resource, error) {
+      .put(Context.resourceId, configuration, function (resource, error) {
         if (error) {
           console.error(error);
         }
@@ -205,29 +205,34 @@
   }
 
   function fetchAvailableResources(bindings) {
-    dpd('__resources').get(function(resources) {
-      bindings.availableResources = _.compact(
-        _.map(resources, function(resource) {
-          return resource.type !== 'ActionResource' ? resource.id : false;
-        }));
-
-      bindings.availableResources.splice(0, 0, '');
+    dpd('__resources').get(function (resources) {
+      resources.forEach(function (resource) {
+        if ((resource.type === 'Collection' || resource.type === 'UserCollection')
+          && resource.id) {
+          // provide sorted resources
+          var index = _.sortedIndex(bindings.availableResources, resource.id);
+          bindings.availableResources.splice(index, 0, resource.id);
+        }
+      });
+      // bindings.availableResources = _.compact(
+      //   _.map(resources, function (resource) {
+      //     return resource.type !== 'ActionResource' ? resource.id : false;
+      //   })
+      // );
 
       ko.applyBindings(bindings);
     });
   }
 
-  function storeCode(name) {
-    var value = editor.getSession()
-      .getValue() || '';
+  function storeCode(name, method) {
+    var value = editor.getSession().getValue() || '';
 
-    var fileName = name.replace(' ', '-')
-      .toLowerCase() + '.js';
+    var fileName = name.replace(' ', '-').toLowerCase() + '/' + method.toLowerCase() + '.js';
 
     dpd('__resources')
       .put(Context.resourceId + '/' + fileName, {
         value: value
-      }, function(resource, error) {
+      }, function (resource, error) {
         if (error) {
           return ui.error('Error saving event', error.message)
             .effect('slide');
@@ -244,19 +249,19 @@
   function fetchCode(callback) {
     if (bindings && bindings.editable.name()) {
       var fileName = bindings.editable.name()
-        .replace(' ', '-')
-        .toLowerCase() + '.js';
+        .replace(' ', '-').toLowerCase() + '/'
+        + bindings.editable.method() + '.js';
 
       dpd('__resources')
         .get(Context.resourceId + '/' + fileName,
-          function(resource, error) {
-            if (!error) {
-              editor.getSession()
-                .setValue(resource.value);
+        function (resource, error) {
+          if (!error) {
+            editor.getSession()
+              .setValue(resource.value);
 
-              callback && callback(resource.value);
-            }
-          });
+            callback && callback(resource.value);
+          }
+        });
     }
   }
 
@@ -266,13 +271,12 @@
       .get(Context.resourceId, callback);
   }
 
-  fetchProperties(function(resourceConfig) {
+  fetchProperties(function (resourceConfig) {
     configuration = resourceConfig;
     render(resourceConfig);
   });
 
-  $('#actions')
-    .show();
+  $('#actions').show();
 
   if ($editor) {
     createEditor();

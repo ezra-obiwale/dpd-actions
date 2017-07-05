@@ -23,19 +23,19 @@ function ActionResource(name, options) {
   _tag_ = 'action-resource::' + this.name;
 
   // Store actions for later reference
-  _.each(this.config.actions, function(action) {
+  _.each(this.config.actions, function (action) {
 
     action.name = action.name.replace(' ', '-')
       .toLowerCase();
 
     action.store = options && action.resource ? options.db.createStore(action.resource) : {};
 
-    action.executable = Script.load(this.options.configPath + '/' + action.name + '.js',
-      function(error, script) {
+    action.executable = Script.load(this.options.configPath + '/' + action.name + '/' + action.method + '.js',
+      function (error, script) {
         if (!error) {
           action.executable = script;
         } else {
-          throw new Error('Failed to init executable for action ' + action.name + '. Failed with error: ' + error.message);
+          throw new Error('Failed to init executable for action ' + action.name + '/' + action.method + '. Failed with error: ' + error.message);
         }
       });
 
@@ -66,131 +66,47 @@ ActionResource.dashboard = {
 
 ActionResource.prototype = _.extend(ActionResource.prototype, Resource.prototype);
 ActionResource.prototype.clientGeneration = true;
-ActionResource.prototype.clientGenerationExec = ['action'];
 
-ActionResource.prototype.handle = function(context) {
+ActionResource.prototype.handle = function (ctx, next) {
 
-  logger.info(_tag_, 'Handling context: %j', context.url);
+  logger.info(_tag_, 'Handling context: %j', ctx.url);
 
-  if (context.url.indexOf('/action') === 0) {
+  var parts = ctx.url.substr(1).split('/');
+  var requestPath = parts.shift();
+  var action = this.actions[requestPath];
 
-    var requestPath = context.url.replace(/^\/action\//, '');
-    var action = this.actions[requestPath];
-
-    if (action) {
-      action.data = _.merge({}, context.query, context.body);
-      try {
-        action.executable.run(context, this.createDomain(action));
-      } catch (error) {
-        logger.error(_tag_, 'Failed executing action: %j with error: %j', action.name, error.message);
-        context.done(error);
-      }
-    }
-
-    // Log errors if no action was found for the request path
-    else {
-      if (!action) {
-        logger.error(_tag_, 'No action found for action %j', context.url);
-      } else {
-        logger.error(_tag_, 'An unexpected error occured.');
-      }
-
-      context.done('Failed executing action:' + requestPath);
+  if (action && ctx.req.method.toLowerCase() !== action.method) {
+    try {
+      var data = {};
+      var domain = {
+        url: ctx.url,
+        parts: parts,
+        query: ctx.query,
+        body: ctx.body,
+        'this': data,
+        getHeader: function (name) {
+          if (ctx.req.headers) {
+            return ctx.req.headers[name];
+          }
+        },
+        setHeader: function (name, value) {
+          if (ctx.res.setHeader) {
+            ctx.res.setHeader(name, value);
+          }
+        }
+      };
+      action.executable.run(ctx, domain, function (err) {
+        ctx.done(err, data);
+      });
+    } catch (err) {
+      logger.error(_tag_, 'Failed executing %j action: %j with error: %j',
+        action.method.toUpperCase(), action.name, err.message);
+      ctx.done(err);
     }
   }
-
-  // Not an action, let Resource handle request
   else {
-    Resource.prototype.handle.apply(this, arguments);
+    next();
   }
-};
-
-
-ActionResource.prototype.createDomain = function(action) {
-  var hasErrors = false;
-  var errors = {};
-
-  var domain = {
-
-    // Helpers as provided with default Collection Resource
-    error: function(key, value) {
-      logger.error(_tag_, key, value);
-
-      errors[key] = value || true;
-      hasErrors = true;
-    },
-    errorIf: function(condition, key, value) {
-      if (condition) {
-        domain.error(key, value);
-      }
-    },
-    errorUnless: function(condition, key, value) {
-      domain.errorIf(!condition, key, value);
-    },
-    hasErrors: function() {
-      return hasErrors;
-    },
-    hide: function(property) {
-      delete domain.data[property];
-    },
-
-    'this': action.data,
-    data: action.data,
-
-   
-
-    // Allow internal access to other resources
-    store: {
-      persist: this.preparePersistFunction(action),
-      fetch: this.prepareFetchFunction(action)
-    },
-
-    dpd: this.internalClient
-  };
-
-  return domain;
-};
-
-ActionResource.prototype.handleResponse = function(callback) {
-  return function(error, data) {
-    callback(error, data);
-  };
-};
-
-ActionResource.prototype.preparePersistFunction = function(action) {
-  var _this = this;
-
-  return function(element, callback) {
-    if (element.id) {
-      action.store.update({
-        id: element.id
-      }, element, _this.handleResponse(callback));
-    } else {
-      action.store.insert(element, _this.handleResponse(callback));
-    }
-  };
-};
-
-ActionResource.prototype.prepareFetchFunction = function(action) {
-  var _this = this;
-
-  return function(query, callback) {
-
-    // No query argument provided, fetch all.
-    if (_.isFunction(query)) {
-      action.store.find(_this.handleResponse(query));
-    }
-    // Query provided.
-    else if (_.isObject(query)) {
-      action.store.find(query, _this.handleResponse(callback));
-    }
-    // Id was provided.
-    else {
-      action.store.first({
-        id: query
-      }, _this.handleResponse(callback));
-    }
-  };
 };
 
 module.exports = ActionResource;
