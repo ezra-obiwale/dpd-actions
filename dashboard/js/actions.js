@@ -146,6 +146,18 @@
       removeCode(action.name, action.method);
     });
 
+    bindings.confirmDelete = _.bind(function (action, event) {
+      $(event.target).parent()
+        .hide().siblings().show();
+      return;
+    });
+
+    bindings.cancelDelete = _.bind(function (action, event) {
+      $(event.target).closest('span')
+        .hide().siblings().show();
+      return;
+    });
+
     bindings.isEmpty = ko.observable(bindings.actions().length === 0);
     bindings.isNew = ko.observable(true);
     bindings.isEdit = ko.observable(false);

@@ -64,8 +64,8 @@
 
               <div class="component-item-header">
 
-                <div class="no-show-on-edit" data-bind="click: $root.onEdit">
-                  <span>
+                <div class="no-show-on-edit">
+                  <span data-bind="click: $root.onEdit">
                     <i class="icon-white icon-off"
                        data-original-title="string">
                     </i>
@@ -73,7 +73,15 @@
                   </span>
 
                   <span class="pull-right">
-                    <a href="#" data-bind="click: $root.onDelete">
+                    <span style="display: none">
+                      <button href="#" class="btn btn-mini btn-danger" data-bind="click: $root.onDelete">
+                        <i class="icon-white icon-ok"></i>
+                      </button>
+                      <button href="#" class="btn btn-mini" data-bind="click: $root.cancelDelete">
+                        <i class="icon-remove"></i>
+                      </button>
+                    </span>
+                  <a href="#" data-bind="click: $root.confirmDelete">
                       <i class="icon-white icon-remove"></i>
                     </a>
                   </span>
@@ -96,7 +104,7 @@
                   <div class="component-item-block">
                     <label style="display: inline">Request Method: </label>
                   </div>
-                  
+
                   <div class="component-item-block">
                     <select id="method" data-bind="value: $root.editable.method,
                                     options: $root.requestMethods">
