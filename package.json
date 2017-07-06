@@ -7,11 +7,11 @@
     "url": "http://github.com/ezra-obiwale/dpd-method-actions.git"
   },
   "author": [
-		{
-			"name": "Ezra Obiwale",
-			"email": "contact@ezraobiwale.com"
-		}
-	],
+    {
+      "name": "Ezra Obiwale",
+      "email": "contact@ezraobiwale.com"
+    }
+  ],
   "version": "1.0.0",
   "dependencies": {
     "lodash": "^2.4.1",

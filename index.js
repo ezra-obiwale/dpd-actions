@@ -46,7 +46,7 @@ function ActionResource(name, options) {
 
 util.inherits(ActionResource, Resource);
 
-ActionResource.label = 'ActionResource';
+ActionResource.label = 'Method Action';
 ActionResource.defaultPath = '/action';
 
 ActionResource.dashboard = {
