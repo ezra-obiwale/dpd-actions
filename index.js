@@ -11,7 +11,7 @@ var util = require('util');
 
 var _tag_;
 
-function ActionResource(name, options) {
+function MethodActionResource(name, options) {
 
   Resource.apply(this, arguments);
 
@@ -44,12 +44,12 @@ function ActionResource(name, options) {
   logger.verbose(_tag_, 'Initializing action collection... done');
 }
 
-util.inherits(ActionResource, Resource);
+util.inherits(MethodActionResource, Resource);
 
-ActionResource.label = 'Method Action';
-ActionResource.defaultPath = '/action';
+MethodActionResource.label = 'Method Action';
+MethodActionResource.defaultPath = '/action';
 
-ActionResource.dashboard = {
+MethodActionResource.dashboard = {
   path: path.join(__dirname, 'dashboard'),
   pages: ['Actions'],
   scripts: [
@@ -63,10 +63,10 @@ ActionResource.dashboard = {
   ]
 };
 
-ActionResource.prototype = _.extend(ActionResource.prototype, Resource.prototype);
-ActionResource.prototype.clientGeneration = true;
+MethodActionResource.prototype = _.extend(MethodActionResource.prototype, Resource.prototype);
+MethodActionResource.prototype.clientGeneration = true;
 
-ActionResource.prototype.handle = function (ctx, next) {
+MethodActionResource.prototype.handle = function (ctx, next) {
 
   logger.info(_tag_, 'Handling context: %j', ctx.url);
 
@@ -111,4 +111,4 @@ ActionResource.prototype.handle = function (ctx, next) {
   }
 };
 
-module.exports = ActionResource;
+module.exports = MethodActionResource;
