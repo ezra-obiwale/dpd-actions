@@ -39,20 +39,6 @@
                 </div>
 
                 <div class="component-item-block">
-                  <label style="display: inline">Resource: </label>
-                </div>
-
-                <div class="component-item-block">
-                  <select id="resource" data-bind="value: creatable.resource,
-                                     options: availableResources">
-                  </select>
-                </div>
-
-                <div class="component-item-block footnote">
-                  Attaching a resource gives you direct db access to the resource, using the store object within the action.
-                </div>
-
-                <div class="component-item-block">
                   <button class="btn btn-success" data-bind="click: $root.onAdd">
                     <i class="icon-white icon-plus"></i>&nbsp;Create
                   </button>
@@ -69,7 +55,7 @@
                     <i class="icon-white icon-off"
                        data-original-title="string">
                     </i>
-                    <strong data-bind="text: name"></strong>:<strong data-bind="text: method"></strong>
+                    <strong data-bind="text: name"></strong> &rarr; <strong data-bind="text: method"></strong>
                   </span>
 
                   <span class="pull-right">
@@ -85,11 +71,6 @@
                       <i class="icon-white icon-remove"></i>
                     </a>
                   </span>
-
-                  <span class="pull-right label" data-bind="visible: resource,
-                                   text: resource">
-                  </span>
-
                 </div>
                 <div class="show-on-edit">
 
@@ -112,16 +93,6 @@
                   </div>
 
                   <div class="component-item-block">
-                    <label style="display: inline">Resource: </label>
-                  </div>
-
-                  <div class="component-item-block">
-                    <select id="resource" data-bind="value: $root.editable.resource,
-                                       options: $root.availableResources">
-                    </select>
-                  </div>
-
-                  <div class="component-item-block">
                     <button class="btn btn-success" data-bind="click: $root.onUpdate"><i class="icon-white icon-edit"></i>&nbsp;Update</button>
                   </div>
                 </div>
@@ -136,8 +107,9 @@
           <h3 data-bind="visible: isNew">
             Action
           </h3>
-          <h3 data-bind="visible: isEdit">
-            <span id="editor-title" data-bind="text: editable.title()"></span> action
+          <h3 id="editor-title" data-bind="visible: isEdit">
+            <span data-bind="text: editable.name()"></span> action
+            <span>&rarr; <span data-bind="text: editable.method()"></span></span>
           </h3>
           <br />
           <div data-bind="visible: $root.isInitialized">

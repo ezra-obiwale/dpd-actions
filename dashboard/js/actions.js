@@ -27,54 +27,40 @@
       id: ko.observable(''),
       name: ko.observable(''),
       method: ko.observable(''),
-      resource: ko.observable(''),
       title: function () {
-        return this.name() ? this.name() + '-' + this.method() : '';
+        return this.name() ? this.name() + '  ' + this.method() : '';
       }
     };
 
     bindings.creatable = {
       name: ko.observable(''),
       method: ko.observable(''),
-      resource: ko.observable('')
     };
 
     var reset = _.bind(function () {
       bindings.creatable.name('');
       bindings.creatable.method('');
-      bindings.creatable.resource('');
     });
 
     bindings.actions = ko.observableArray(data.actions);
 
-    bindings.onEdit = _.bind(function (action) {
+    bindings.onNew = _.bind(function () {
+      bindings.editable.name('');
+      bindings.editable.method('');
 
       $('.edit-mode').removeClass('edit-mode');
-      $('#action-' + action.name + '-' + action.method).addClass('edit-mode');
-
-      if (!action.name) {
-        return;
-      }
-
-      $('.action-edit').toggleClass('hide');
-
-      bindings.editable.id(action.name + '-' + action.method);
-      bindings.editable.name(action.name);
-      bindings.editable.method(action.method);
-      bindings.editable.resource(action.resource);
-
-      bindings.isNew(false);
-      bindings.isEdit(true);
-      bindings.isEditMode(true);
-
-      fetchCode();
+      $('#action-new').addClass('edit-mode');
+      $('#editor-title').children(':last').hide();
     });
 
     bindings.onAdd = _.bind(function () {
+      if (!bindings.creatable.name().trim()) {
+        bindings.creatable.name('');
+        return ui.error('Name cannot be empty!');
+      }
       var action = {
         name: bindings.creatable.name(),
         method: bindings.creatable.method(),
-        resource: bindings.creatable.resource()
       };
 
       var existing = _.detect(data.actions, function (oldAction) {
@@ -94,18 +80,43 @@
 
       bindings.editable.name(action.name);
       bindings.editable.method(action.method);
-      bindings.editable.resource(action.resource);
 
       $('#action-' + action.name + '-' + action.method + ' .start-editing').click();
     }, bindings);
 
+    bindings.onEdit = _.bind(function (action) {
+
+      $('.edit-mode').removeClass('edit-mode');
+      $('#action-' + action.name + '-' + action.method).addClass('edit-mode');
+      $('#editor-title').children(':last').show();
+
+      if (!action.name) {
+        return;
+      }
+
+      $('.action-edit').toggleClass('hide');
+
+      bindings.editable.id(action.name + '-' + action.method);
+      bindings.editable.name(action.name);
+      bindings.editable.method(action.method);
+
+      bindings.isNew(false);
+      bindings.isEdit(true);
+      bindings.isEditMode(true);
+
+      fetchCode();
+    });
+
     bindings.onUpdate = _.bind(function (oldAction, event) {
+      if (!bindings.editable.name().trim()) {
+        bindings.editable.name('');
+        return ui.error('Name cannot be empty!');
+      }
       _.forEach(configuration.actions, function (action, index) {
         if (oldAction.name === action.name && oldAction.method === action.method) {
           configuration.actions[index] = {
             name: bindings.editable.name(),
             method: bindings.editable.method(),
-            resource: bindings.editable.resource()
           };
         }
       });
@@ -125,15 +136,6 @@
       $('#action-' + oldAction.name).addClass('edit-mode');
 
     }, bindings);
-
-    bindings.onNew = _.bind(function () {
-      bindings.editable.name('');
-      bindings.editable.method('');
-      bindings.editable.resource('');
-
-      $('.edit-mode').removeClass('edit-mode');
-      $('#action-new').addClass('edit-mode');
-    });
 
     bindings.onDelete = _.bind(function (action, event) {
 
@@ -183,8 +185,7 @@
       });
 
     bindings.requestMethods = ['GET', 'POST', 'PUT', 'DELETE'];
-    bindings.availableResources = [];
-    fetchAvailableResources(bindings);
+    ko.applyBindings(bindings);
   }
 
   function createEditor() {
@@ -228,22 +229,10 @@
       });
   }
 
-  function fetchAvailableResources(bindings) {
-    dpd('__resources').get(function (resources) {
-      resources.forEach(function (resource) {
-        if ((resource.type === 'Collection' || resource.type === 'UserCollection')
-          && resource.id) {
-          // provide sorted resources
-          var index = _.sortedIndex(bindings.availableResources, resource.id);
-          bindings.availableResources.splice(index, 0, resource.id);
-        }
-      });
-      bindings.availableResources.unshift('');
-      ko.applyBindings(bindings);
-    });
-  }
-
   function storeCode(name, method) {
+    if (!name.trim()) {
+      return ui.error('Create the action first');
+    }
     var value = editor.getSession().getValue() || '';
 
     var fileName = name.replace(' ', '-').toLowerCase() + '-' + method + '.js';
