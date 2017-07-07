@@ -12,7 +12,7 @@
       "email": "contact@ezraobiwale.com"
     }
   ],
-  "version": "1.0.1",
+  "version": "1.0.0",
   "dependencies": {
     "lodash": "^2.4.1",
     "npmlog": "^0.1.1"
