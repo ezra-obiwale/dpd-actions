@@ -27,7 +27,10 @@
       id: ko.observable(''),
       name: ko.observable(''),
       method: ko.observable(''),
-      resource: ko.observable('')
+      resource: ko.observable(''),
+      title: function () {
+        return this.name() ? this.name() + '-' + this.method() : '';
+      }
     };
 
     bindings.creatable = {
@@ -47,7 +50,7 @@
     bindings.onEdit = _.bind(function (action) {
 
       $('.edit-mode').removeClass('edit-mode');
-      $('#action-' + action.name).addClass('edit-mode');
+      $('#action-' + action.name + '-' + action.method).addClass('edit-mode');
 
       if (!action.name) {
         return;
@@ -55,7 +58,7 @@
 
       $('.action-edit').toggleClass('hide');
 
-      bindings.editable.id(action.name);
+      bindings.editable.id(action.name + '-' + action.method);
       bindings.editable.name(action.name);
       bindings.editable.method(action.method);
       bindings.editable.resource(action.resource);
@@ -74,6 +77,13 @@
         resource: bindings.creatable.resource()
       };
 
+      var existing = _.detect(data.actions, function (oldAction) {
+        return oldAction.name === action.name && oldAction.method === action.method;
+      });
+      if (existing) {
+        return ui.notify('Event already exists').hide(2000).effect('slide');
+      }
+
       data.actions.push(action);
       storeConfiguration(data);
       storeCode(bindings.creatable.name(), bindings.creatable.method());
@@ -86,16 +96,12 @@
       bindings.editable.method(action.method);
       bindings.editable.resource(action.resource);
 
-      $('.edit-mode').removeClass('edit-mode');
-      $('#action-' + action.name).addClass('edit-mode');
-
+      $('#action-' + action.name + '-' + action.method + ' .start-editing').click();
     }, bindings);
 
-    bindings.onUpdate = _.bind(function (action, event) {
-      var name = bindings.editable.id();
-
+    bindings.onUpdate = _.bind(function (oldAction, event) {
       _.forEach(configuration.actions, function (action, index) {
-        if (name === action.name) {
+        if (oldAction.name === action.name && oldAction.method === action.method) {
           configuration.actions[index] = {
             name: bindings.editable.name(),
             method: bindings.editable.method(),
@@ -107,16 +113,16 @@
       storeConfiguration(configuration);
 
       // remove old code of name or method changed
-      if (action.name !== bindings.editable.method()
-        || action.method !== bindings.editable.method()) {
-        removeCode(action.name, action.method, true);
+      if (oldAction.name !== bindings.editable.name()
+        || oldAction.method !== bindings.editable.method()) {
+        removeCode(oldAction.name, oldAction.method, true);
       }
 
       storeCode(bindings.editable.name(), bindings.editable.method());
 
       bindings.actions(configuration.actions);
 
-      $('#action-' + action.name).addClass('edit-mode');
+      $('#action-' + oldAction.name).addClass('edit-mode');
 
     }, bindings);
 
@@ -135,7 +141,7 @@
       event.stopPropagation();
 
       _.forEach(bindings.actions(), function (storedAction, index) {
-        if (storedAction.name === action.name) {
+        if (storedAction.name === action.name && storedAction.method === action.method) {
           data.actions.splice(index, 1);
         }
       });

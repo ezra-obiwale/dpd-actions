@@ -25,11 +25,11 @@ function MethodActionResource(name, options) {
   // Store actions for later reference
   _.each(this.config.actions, function (action) {
 
-    action.name = action.name.replace(' ', '-').toLowerCase();
+    action.name = action.name.replace(' ', '-');
 
     action.store = options && action.resource ? options.db.createStore(action.resource) : {};
 
-    action.executable = Script.load(this.options.configPath + '/' + action.name + '-' + action.method + '.js',
+    action.executable = Script.load(this.options.configPath + '/' + action.name.toLowerCase() + '-' + action.method + '.js',
       function (error, script) {
         if (!error) {
           action.executable = script;
@@ -38,7 +38,7 @@ function MethodActionResource(name, options) {
         }
       });
 
-    this.actions[action.name] = action;
+    this.actions[action.name + '-' + action.method] = action;
   }, this);
 
   logger.verbose(_tag_, 'Initializing action collection... done');
@@ -72,30 +72,31 @@ MethodActionResource.prototype.handle = function (ctx, next) {
 
   var parts = ctx.url.substr(1).split('/');
   var requestPath = parts.shift();
-  var action = this.actions[requestPath];
-  if (action && ctx.req.method === action.method) {
+  var action = this.actions[requestPath + '-' + ctx.req.method];
+
+  if (action) {
     try {
-      var data = {};
-      var domain = {
-        url: ctx.url,
-        parts: parts,
-        query: ctx.query,
-        body: ctx.body,
-        getHeader: function (name) {
-          if (ctx.req.headers) {
-            return ctx.req.headers[name];
+      var data = {},
+        domain = {
+          url: ctx.url,
+          parts: parts,
+          query: ctx.query,
+          body: ctx.body,
+          getHeader: function (name) {
+            if (ctx.req.headers) {
+              return ctx.req.headers[name];
+            }
+          },
+          setHeader: function (name, value) {
+            if (ctx.res.setHeader) {
+              ctx.res.setHeader(name, value);
+            }
+          },
+          setResult: function (val, err) {
+            data = val;
+            ctx.done(err, data);
           }
-        },
-        setHeader: function (name, value) {
-          if (ctx.res.setHeader) {
-            ctx.res.setHeader(name, value);
-          }
-        },
-        setResult: function (val, err) {
-          data = val;
-          ctx.done(err, data);
-        }
-      };
+        }; 
       action.executable.run(ctx, domain, function (err) {
         if (err)
           ctx.done(err);

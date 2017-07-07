@@ -60,12 +60,12 @@
               </div>
             </li>
             <!-- ko foreach: actions -->
-            <li class="component-item action" data-bind="attr: { id: 'action-' + name }">
+            <li class="component-item action" data-bind="attr: { id: 'action-' + name + '-' + method }">
 
               <div class="component-item-header">
 
                 <div class="no-show-on-edit">
-                  <span data-bind="click: $root.onEdit">
+                  <span class="start-editing" data-bind="click: $root.onEdit">
                     <i class="icon-white icon-off"
                        data-original-title="string">
                     </i>
@@ -134,10 +134,10 @@
       <div class="panel-cell action-editor">
         <div class="placeholder new-item component-item-header">
           <h3 data-bind="visible: isNew">
-            Create new action
+            Action
           </h3>
           <h3 data-bind="visible: isEdit">
-            Edit action: <span data-bind="text: editable.name"></span>
+            <span id="editor-title" data-bind="text: editable.title()"></span> action
           </h3>
           <br />
           <div data-bind="visible: $root.isInitialized">
